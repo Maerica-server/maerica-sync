@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: Maerica Sync
+## Notes: Read-only character snapshot for WoW Forever. Each character has their own SavedVariables file.
+## Author: Maerica
+## Version: 0.2.5
+## SavedVariablesPerCharacter: MaericaSyncDB
+## IconTexture: Interface\AddOns\maerica-sync\icon
+
+Json.lua
+Snapshot.lua
+Options.lua
+MaericaSync.lua
+Frame.lua

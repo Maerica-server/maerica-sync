@@ -1,0 +1,45 @@
+name: Release
+
+# Zip maerica-sync/ and publish a GitHub Release. The wow-forever collector
+# resolves this repo via the service catalog and installs the asset itself.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zip and publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          toc=maerica-sync/maerica-sync.toc
+          test -f "$toc"
+          version="$(grep -m1 -E '^## Version:' "$toc" | sed -E 's/^## Version:[[:space:]]*//' | tr -d '\r')"
+          test -n "$version"
+          file="maerica-sync-${version}.zip"
+          zip -qr "$file" maerica-sync -x '*/.*'
+          sha="$(sha256sum "$file" | cut -d' ' -f1)"
+          tag="v${version}"
+          notes="maerica-sync ${version} (${GITHUB_SHA:0:12})"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$file" --clobber
+            gh release edit "$tag" --notes "$notes"
+          else
+            gh release create "$tag" "$file" --title "maerica-sync ${version}" --notes "$notes"
+          fi
+          echo "published $tag $file $sha"
